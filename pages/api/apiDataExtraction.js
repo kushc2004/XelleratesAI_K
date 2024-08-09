@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             const scriptPath1 = `"app/(dashboard)/dashboard/finDataExtractionNew.js"`;
             const command = `${pythonPath} ${scriptPath} ${misFilePath}`;
 
-            const command1 = `node ${scriptPath1}`
+            const command1 = `node ${scriptPath1} ${misFilePath}`
 
             exec(command1, (error, stdout, stderr) => {
                 console.log("Executing python file...");
