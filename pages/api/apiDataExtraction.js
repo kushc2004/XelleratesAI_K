@@ -36,6 +36,11 @@ export default async function handler(req, res) {
 
             const command1 = `node ${scriptPath1} ${misFilePath}`
 
+            const fs = require('fs');
+            console.log('Current Directory:', __dirname);
+            console.log('Files:', fs.readdirSync(__dirname));
+
+
             exec(command1, (error, stdout, stderr) => {
                 console.log("Executing python file...");
                 console.log("Python output: ", stdout);
