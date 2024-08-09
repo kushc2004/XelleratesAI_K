@@ -29,8 +29,8 @@ export default async function handler(req, res) {
 
             const misFilePath = data.mis;
 
-            const pythonPath = "/usr/local/bin/python3";
-            const scriptPath = `"/Users/kush/Files/Data_Science/Intern/Xellerates/XelleratesAI/app/(dashboard)/dashboard/finDataExtractionNew.py"`;
+            const pythonPath = "python";
+            const scriptPath = `"app/(dashboard)/dashboard/finDataExtractionNew.p"`;
             const command = `${pythonPath} ${scriptPath} ${misFilePath}`;
 
             exec(command, (error, stdout, stderr) => {
