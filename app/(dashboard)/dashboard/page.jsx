@@ -302,9 +302,7 @@ const Dashboard = () => {
       const company_id = companyData.id;
       console.log('Company ID:', company_id);
 
-      const fs = require('fs');
       console.log('Current Directory:', __dirname);
-      console.log('Files:', fs.readdirSync(__dirname));
 
   
       if (!company_id) {
