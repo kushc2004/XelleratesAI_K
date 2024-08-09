@@ -9,18 +9,27 @@ class Extract {
         this.misFilePath = misFilePath;
     }
 
-    async downloadFile(url, outputPath) {
-        const writer = fs.createWriteStream(outputPath);
+    // async downloadFile(url, outputPath) {
+    //     const writer = fs.createWriteStream(outputPath);
+    //     const response = await axios({
+    //         url,
+    //         method: 'GET',
+    //         responseType: 'stream',
+    //     });
+    //     response.data.pipe(writer);
+    //     return new Promise((resolve, reject) => {
+    //         writer.on('finish', resolve);
+    //         writer.on('error', reject);
+    //     });
+    // }
+
+    async downloadFile(url) {
         const response = await axios({
             url,
             method: 'GET',
-            responseType: 'stream',
+            responseType: 'arraybuffer',
         });
-        response.data.pipe(writer);
-        return new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-        });
+        return response.data; // Return file data as a buffer
     }
 
     unmergeCells(sheet) {
@@ -132,12 +141,12 @@ export default async function handler(req, res) {
             }
 
             const misFilePath = data.mis;
-            const localFilePath = path.join(__dirname, 'temp_mis_file.xlsx');
+            // const localFilePath = path.join(__dirname, 'temp_mis_file.xlsx');
 
-            const extractor = new Extract(localFilePath);
+            const extractor = new Extract();
 
-            await extractor.downloadFile(misFilePath, localFilePath);
-            const workbook = xlsx.readFile(localFilePath);
+            const fileBuffer = await extractor.downloadFile(misFilePath);
+            const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
             const sheetName = 'Financial MIS';
             const sheet = workbook.Sheets[sheetName];
             extractor.unmergeCells(sheet);
