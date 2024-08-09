@@ -71,7 +71,8 @@
     "swiper": "^9.1.0",
     "tailwindcss-filters": "^3.0.0",
     "uuidv4": "^6.2.13",
-    "yup": "^1.0.2"
+    "yup": "^1.0.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",
