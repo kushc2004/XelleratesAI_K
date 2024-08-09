@@ -1,10 +1,25 @@
 const xlsx = require('xlsx');
-const path = require('path');
+const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 
 class Extract {
     constructor(misFilePath) {
         this.misFilePath = misFilePath;
+    }
+
+    async downloadFile(url, outputPath) {
+        const writer = fs.createWriteStream(outputPath);
+        const response = await axios({
+            url,
+            method: 'GET',
+            responseType: 'stream',
+        });
+        response.data.pipe(writer);
+        return new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+        });
     }
 
     unmergeCells(sheet) {
@@ -37,17 +52,17 @@ class Extract {
     extractData(sheet, rowLabel, quarterlyMonths, typeMap, monthMap) {
         const data = {};
         const headers = [];
-    
+
         // Extract headers from the first row (e.g., row 1 or row 2 depending on your sheet)
         const range = xlsx.utils.decode_range(sheet['!ref']);
         for (let col = range.s.c; col <= range.e.c; col++) {
             const cell = sheet[xlsx.utils.encode_cell({ r: 1, c: col })];  // Assuming headers are in row 2
             headers.push(cell ? { v: cell.v, c: col } : null);
         }
-    
+
         const yearlyColumns = headers.filter(header => header && header.v && header.v.includes('Yearly')).map(header => header.c);
         let yearColumn = Math.min(...yearlyColumns);
-    
+
         data['Yearly'] = [];
         for (const year of yearlyColumns) {
             const yearlyData = sheet[xlsx.utils.encode_cell({ r: typeMap[rowLabel], c: year })].v;
@@ -58,10 +73,10 @@ class Extract {
             data['Yearly'].push(t);
             yearColumn += 1;
         }
-    
+
         const monthlyColumns = headers.filter(header => header && header.v && header.v.includes('Monthly')).map(header => header.c);
         let monthColumn = Math.min(...monthlyColumns);
-    
+
         for (const [quarter, months] of Object.entries(quarterlyMonths)) {
             const quarterData = [];
             for (let month of months) {
@@ -75,13 +90,13 @@ class Extract {
             }
             data[quarter] = quarterData;
         }
-    
+
         return data;
     }
-    
+
 }
 
-function main() {
+async function main() {
     const quarters = {
         'Q1': ["Apr'23", "May'23", "Jun'23"],
         'Q2': ["Jul'23", "Aug'23", "Sep'23"],
@@ -111,25 +126,38 @@ function main() {
     };
 
     const misFilePath = process.argv[2];
-    const workbook = xlsx.readFile(misFilePath);
-    const extractor = new Extract(misFilePath);
+    const localFilePath = path.join(__dirname, 'temp_mis_file.xlsx');
 
-    const sheetName = 'Financial MIS';
-    const sheet = workbook.Sheets[sheetName];
-    extractor.unmergeCells(sheet);
+    const extractor = new Extract(localFilePath);
 
-    const revenue = extractor.extractData(sheet, 'Sales', quarters, typeMap, monthMap);
-    const expense = extractor.extractData(sheet, 'Purchase', quarters, typeMap, monthMap);
-    const profit = extractor.extractData(sheet, 'CM 1 - Gross Profit (A)', quarters, typeMap, monthMap);
+    try {
+        await extractor.downloadFile(misFilePath, localFilePath);
+        const workbook = xlsx.readFile(localFilePath);
+        const sheetName = 'Financial MIS';
+        const sheet = workbook.Sheets[sheetName];
+        extractor.unmergeCells(sheet);
 
-    const financialData = {
-        'revenue': revenue,
-        'expense': expense,
-        'profit': profit
-    };
+        const revenue = extractor.extractData(sheet, 'Sales', quarters, typeMap, monthMap);
+        const expense = extractor.extractData(sheet, 'Purchase', quarters, typeMap, monthMap);
+        const profit = extractor.extractData(sheet, 'CM 1 - Gross Profit (A)', quarters, typeMap, monthMap);
 
-    const jsonData = JSON.stringify(financialData, null, 4);
-    console.log(jsonData);
+        const financialData = {
+            'revenue': revenue,
+            'expense': expense,
+            'profit': profit
+        };
+
+        const jsonData = JSON.stringify(financialData, null, 4);
+        console.log(jsonData);
+
+    } catch (error) {
+        console.error('Error processing file:', error);
+    } finally {
+        // Clean up the temporary file
+        fs.unlink(localFilePath, (err) => {
+            if (err) console.error('Error deleting temporary file:', err);
+        });
+    }
 }
 
 main();
