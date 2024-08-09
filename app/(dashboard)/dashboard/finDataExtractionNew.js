@@ -110,7 +110,7 @@ function main() {
         "Dec": "12"
     };
 
-    const misFilePath = ("/Users/kush/Downloads/MIS - Fy24.xlsx");
+    const misFilePath = process.argv[2];
     const workbook = xlsx.readFile(misFilePath);
     const extractor = new Extract(misFilePath);
 
