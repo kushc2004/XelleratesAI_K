@@ -16,6 +16,10 @@ import Chatbot from '@/components/chatbot';
 
 //
 import useCompleteUserDetails from '@/hooks/useCompleUserDetails';
+const fs = require('fs');
+console.log('Current Directory:', __dirname);
+console.log('Files:', fs.readdirSync(__dirname));
+
 
 
 // const {
