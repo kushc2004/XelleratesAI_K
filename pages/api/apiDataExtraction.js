@@ -30,7 +30,7 @@ export default async function handler(req, res) {
             const misFilePath = data.mis;
 
             const pythonPath = "python";
-            const scriptPath = `"app/(dashboard)/dashboard/finDataExtractionNew.p"`;
+            const scriptPath = `"app/(dashboard)/dashboard/finDataExtractionNew.py"`;
             const command = `${pythonPath} ${scriptPath} ${misFilePath}`;
 
             exec(command, (error, stdout, stderr) => {
