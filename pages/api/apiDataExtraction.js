@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
             const pythonPath = "python";
             const scriptPath = `"app/(dashboard)/dashboard/finDataExtractionNew.py"`;
-            const scriptPath1 = `"/var/task/.next/server/app/(dashboard)/dashboard/finDataExtractionNew.js"`;
+            const scriptPath1 = `"../../app/(dashboard)/dashboard/finDataExtractionNew.js"`;
             const command = `${pythonPath} ${scriptPath} ${misFilePath}`;
 
             const command1 = `node ${scriptPath1} ${misFilePath}`
