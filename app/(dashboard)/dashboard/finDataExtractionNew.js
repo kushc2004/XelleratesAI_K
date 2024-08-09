@@ -52,47 +52,70 @@ class Extract {
     extractData(sheet, rowLabel, quarterlyMonths, typeMap, monthMap) {
         const data = {};
         const headers = [];
-
-        // Extract headers from the first row (e.g., row 1 or row 2 depending on your sheet)
+        
+        // Extract headers from the first row
         const range = xlsx.utils.decode_range(sheet['!ref']);
         for (let col = range.s.c; col <= range.e.c; col++) {
-            const cell = sheet[xlsx.utils.encode_cell({ r: 1, c: col })];  // Assuming headers are in row 2
+            const cell = sheet[xlsx.utils.encode_cell({ r: 1, c: col })];
             headers.push(cell ? { v: cell.v, c: col } : null);
         }
-
-        const yearlyColumns = headers.filter(header => header && header.v && header.v.includes('Yearly')).map(header => header.c);
-        let yearColumn = Math.min(...yearlyColumns);
-
-        data['Yearly'] = [];
-        for (const year of yearlyColumns) {
-            const yearlyData = sheet[xlsx.utils.encode_cell({ r: typeMap[rowLabel], c: year })].v;
-            const t = {
-                'month': headers[year].v.split(' ')[1],
-                'value': yearlyData
-            };
-            data['Yearly'].push(t);
-            yearColumn += 1;
+    
+        // Identify the row with "Yearly"
+        const yearlyRowIndex = headers.findIndex(header => header && header.v && header.v.includes('Yearly'));
+        if (yearlyRowIndex === -1) {
+            throw new Error('Yearly row not found');
         }
-
+    
+        // Extract year names from the row below "Yearly"
+        const yearNamesRow = 2; // Assuming year names are in row 3 (index 2)
+        const yearColumns = [];
+        const yearNames = [];
+        
+        for (let col = range.s.c; col <= range.e.c; col++) {
+            const cell = sheet[xlsx.utils.encode_cell({ r: yearNamesRow, c: col })];
+            if (cell && cell.v && cell.v.includes('FY')) {
+                yearNames.push(cell.v);
+                yearColumns.push(col);
+            }
+        }
+        // console.log('year:....', yearColumns);
+        // Extract yearly data
+        data['Yearly'] = [];
+        for (let i = 0; i < yearColumns.length; i++) {
+            const yearColumn = yearColumns[i];
+            const yearName = yearNames[i];
+            const yearlyData = sheet[xlsx.utils.encode_cell({ r: typeMap[rowLabel], c: yearColumn })]?.v || 0;
+            data['Yearly'].push({
+                'month': yearName, // Use year name here
+                'value': yearlyData
+            });
+        }
+    
+        // Extract quarterly data
         const monthlyColumns = headers.filter(header => header && header.v && header.v.includes('Monthly')).map(header => header.c);
-        let monthColumn = Math.min(...monthlyColumns);
-
+        
         for (const [quarter, months] of Object.entries(quarterlyMonths)) {
             const quarterData = [];
-            for (let month of months) {
-                month = month.split("'")[0];
-                const value = sheet[xlsx.utils.encode_cell({ r: typeMap[rowLabel], c: monthColumn })].v;
+            let monthColumn = Math.min(...monthlyColumns); // Reset column index for each quarter
+            for (const month of months) {
+                const formattedMonth = month.split("'")[0];
+                const value = sheet[xlsx.utils.encode_cell({ r: typeMap[rowLabel], c: monthColumn })]?.v || 0;
                 quarterData.push({
-                    'month': monthMap[month],
+                    'month': monthMap[formattedMonth],
                     'value': value
                 });
-                monthColumn += 1;
+                monthColumn += 1; // Move to the next month column
             }
             data[quarter] = quarterData;
         }
-
+    
         return data;
     }
+    
+    
+    
+    
+    
 
 }
 
