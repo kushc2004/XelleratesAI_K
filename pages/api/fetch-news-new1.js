@@ -38,6 +38,8 @@ export default async function handler(req, res) {
             articles.push({ title, date, firstPara });
         });
 
+        return articles;
+
         res.status(200).json(articles);
     } catch (error) {
         console.error('Error fetching news:', error.message);
