@@ -1,10 +1,22 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const HttpProxyAgent = require("http-proxy-agent");
+const HttpsProxyAgent = require("https-proxy-agent");
 
+// Proxy configuration
+const proxy = "http://df4b94bb61b0d53c989634f943d0e492a53ada15:@proxy.zenrows.com:8001";
+const httpAgent = new HttpProxyAgent(proxy);
+const httpsAgent = new HttpsProxyAgent(proxy);
+
+// Function to fetch organic data
 async function getOrganicData(searchQuery) {
   try {
     const url = `https://search.yahoo.com/search?p=${encodeURIComponent(searchQuery)}`;
+    
+    // Make the request through the proxy
     const response = await axios.get(url, {
+      httpAgent,
+      httpsAgent,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
       },
@@ -30,6 +42,7 @@ async function getOrganicData(searchQuery) {
   }
 }
 
+// Function to fetch competitors
 async function getCompetitors(companyName) {
   try {
     const link = await getOrganicData(companyName + " Traxcn");
@@ -40,7 +53,11 @@ async function getCompetitors(companyName) {
     }
 
     const competitorsUrl = link + '/competitors'; // Adjust the URL based on the actual structure
+    
+    // Make the request through the proxy
     const competitorsResponse = await axios.get(competitorsUrl, {
+      httpAgent,
+      httpsAgent,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
       },
@@ -67,23 +84,27 @@ async function getCompetitors(companyName) {
   }
 }
 
+// API handler
 export default async function handler(req, res){
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
 
     const { query } = req;
-    const searchString = query.query;
+    const searchString = query.q;
 
     if (!searchString) {
         return res.status(400).json({ error: 'Search query is required' });
     }
 
-    const competitors = await getCompetitors(searchString);
-
-    if (competitors) {
-        res.status(200).json({ competitors });
-    } else {
-        res.status(500).json({ error: 'Failed to fetch competitors' });
+    try {
+        const competitors = await getCompetitors(searchString);
+        if (competitors) {
+            res.status(200).json({ competitors });
+        } else {
+            res.status(500).json({ error: 'Failed to fetch competitors' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 }
