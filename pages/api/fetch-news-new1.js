@@ -30,15 +30,27 @@ export default async function handler(req, res) {
 
         const articles = [];
 
-        $('li.wp-block-post').each((i, element) => {
+        const allNewsInfo = await Promise.all(
+            $('li.wp-block-post')
+            .slice(0, 20)
+            .map(async (index, element) => {
             const title = $(element).find('h2.wp-block-post-title a').text().trim();
             const date = $(element).find('time').text().trim();
-            const firstPara = $(element).find('.wp-block-post-excerpt p').text().split('.')[0].replace('…','.').replace('. ','') + '.';
+            const summary = $(element).find('.wp-block-post-excerpt p').text().split('.')[0].replace('…','.').replace('. ','') + '.';
+            const summaryList = [];
+            summaryList.push(summary);
+            const decodedUrl = "https://google.com";
 
             articles.push({ title, date, firstPara });
+            return {decodedUrl,
+                    title,
+                    date,
+                    summaryList,
+            };
         });
+        );
 
-        return articles;
+        
 
         res.status(200).json(articles);
     } catch (error) {
