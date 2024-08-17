@@ -4,10 +4,9 @@ const cheerio = require('cheerio');
 async function getOrganicData(searchQuery) {
   try {
     const url = `https://search.yahoo.com/search?p=${encodeURIComponent(searchQuery)}`;
-    const response = await axios.get('https://api.zenrows.com/v1/', {
-      params: {
-        url: url,
-        apikey: apikey,
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
       },
     });
 
@@ -15,13 +14,17 @@ async function getOrganicData(searchQuery) {
     const firstLink = $(".compTitle h3 a").first().attr("href"); // Adjust the selector to get the first search result link
     console.log(firstLink);
 
-    const str = 'https://r.search.yahoo.com/_ylt=AwrFSVv53cBm2_UGe.pXNyoA;_ylu=Y29sbwNiZjEEcG9zAzEEdnRpZAMEc2VjA3Ny/RV=2/RE=1725125369/RO=10/RU=https%3a%2f%2ftracxn.com%2fd%2fcompanies%2fzepto%2f__MywAn4omlIVSmoQGQd_una-z9EUqUZEdfFVcaSxbWZc/RK=2/RS=g.ldhJb2f7VJy.W05uD.cjc3p_w-';
     const regex = /RU=([^/]+)\//;
-    const match = str.match(regex);
-    const encodedUrl = match[1];
-    const t = encodedUrl.replace(/%3a/g, ':').replace(/%2f/g, '/');
-    console.log(t);
-    return t;
+    const match = firstLink.match(regex);
+    if (match) {
+      const encodedUrl = match[1];
+      const decodedUrl = encodedUrl.replace(/%3a/g, ':').replace(/%2f/g, '/');
+      console.log(decodedUrl);
+      return decodedUrl;
+    } else {
+      console.error('No valid link found.');
+      return null;
+    }
   } catch (error) {
     console.error('Error fetching organic data:', error.message);
   }
@@ -37,12 +40,9 @@ async function getCompetitors(companyName) {
     }
 
     const competitorsUrl = link + '/competitors'; // Adjust the URL based on the actual structure
-
-    const url = `${competitorsUrl}`;
-    const competitorsResponse = await axios.get('https://api.zenrows.com/v1/', {
-      params: {
-        url: url,
-        apikey: apikey,
+    const competitorsResponse = await axios.get(competitorsUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
       },
     });
 
@@ -73,13 +73,17 @@ export default async function handler(req, res){
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
 
     const { query } = req;
-    const searchString = query.q;
+    const searchString = query.query;
 
     if (!searchString) {
         return res.status(400).json({ error: 'Search query is required' });
     }
 
-    const competitors = getCompetitors(searchString);
+    const competitors = await getCompetitors(searchString);
 
-    return competitors;
+    if (competitors) {
+        res.status(200).json({ competitors });
+    } else {
+        res.status(500).json({ error: 'Failed to fetch competitors' });
+    }
 }
