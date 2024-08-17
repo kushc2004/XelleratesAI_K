@@ -3,7 +3,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ComingSoonModal from "@/components/ComingSoonModal";
 import GetStartupInsightsModal from "@/components/GetStartupInsights"; // Adjust import as needed
-import generateReport from "@/components/report/report-functions";
+// import generateReport from "@/components/report/report-functions";
 import useCompleteUserDetails from '@/hooks/useCompleUserDetails';
 // import * as fs from 'fs';
 // import * as pdf from 'html-pdf-node';
