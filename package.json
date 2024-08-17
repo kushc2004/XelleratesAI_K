@@ -44,6 +44,7 @@
     "framer-motion": "^10.10.0",
     "fs": "^0.0.1-security",
     "html-pdf-node": "^1.0.8",
+    "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.5",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.2.14",
