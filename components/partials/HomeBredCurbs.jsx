@@ -2,15 +2,23 @@ import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ComingSoonModal from "@/components/ComingSoonModal";
-import ImageBlock2 from "@/components/partials/widget/block/image-block-2";
+import GetStartupInsightsModal from "@/components/GetStartupInsights"; // Adjust import as needed
+import generateReport from "@/components/report/report-functions";
+import useCompleteUserDetails from '@/hooks/useCompleUserDetails';
+// import * as fs from 'fs';
+// import * as pdf from 'html-pdf-node';
+
+
 
 const HomeBredCurbs = ({ title, companyName, userType }) => {
-  const [value, setValue] = useState({
-    startDate: new Date(),
-    endDate: new Date().setMonth(11),
-  });
   const [greeting, setGreeting] = useState("Good evening");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState(null);
+
+  const { fundingInformation, companyProfile, founderInformation, businessDetails,
+    companyDocuments,
+    ctoInfo,
+     loading } = useCompleteUserDetails();
 
   useEffect(() => {
     const currentHour = new Date().getHours();
@@ -23,16 +31,54 @@ const HomeBredCurbs = ({ title, companyName, userType }) => {
     }
   }, []);
 
-  const handleValueChange = (newValue) => {
-    setValue(newValue);
-  };
 
-  const handleImageClick = () => {
-    setIsModalOpen(true);
-  };
+  // const generatePDF = async (htmlContent, fileName = 'report.pdf') => {
+  //   try {
+  //     const file = { content: htmlContent };
+  //     const options = { format: 'A4' };
+  
+  //     // Generate the PDF and save it
+  //     await pdf.generatePdf(file, options).then(pdfBuffer => {
+  //       fs.writeFileSync(fileName, pdfBuffer);
+  //       console.log(`PDF generated and saved as ${fileName}`);
+  //     });
+  
+  //     // Send the file as a download (assuming an Express.js environment)
+  //     // res.download(fileName, err => {
+  //     //   if (err) {
+  //     //     console.log('Error downloading the file:', err);
+  //     //   } else {
+  //     //     console.log('File downloaded successfully');
+  //     //   }
+  //     // });
+  
+  //   } catch (error) {
+  //     console.error('Error generating PDF:', error);
+  //   }
+  // };
 
+  const handleImageClick = async (type) => {
+    if (type === 'investment') {
+      // if (loading) {
+      //   toast.info("Loading data, please wait...");
+      //   return;
+      // }
+
+      const toastId = toast.loading("Generating report, please wait...");
+  
+      const shortDescription = companyProfile?.short_description || "Default description";
+      const industrySector = companyProfile?.industry_sector || "Default sector";
+      const currentStage = companyProfile?.currentStage || "Not Available";
+      const previousFunding = fundingInformation?.previous_funding || [];
+      
+    } else {
+      setModalType(type);
+      setIsModalOpen(true);
+    }
+  };
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setModalType(null);
   };
 
   return (
@@ -70,13 +116,13 @@ const HomeBredCurbs = ({ title, companyName, userType }) => {
                 src="/assets/images/dashboard/investment-readiness.png"
                 alt="Investment Readiness"
                 className="block dark:hidden w-50% h-auto cursor-pointer"
-                onClick={handleImageClick}
+                onClick={() => handleImageClick('investment')}
               />
               <img
                 src="/assets/images/dashboard/investment-redinessdark.png"
                 alt="Investment Readiness Dark"
                 className="hidden dark:block w-50% h-auto cursor-pointer"
-                onClick={handleImageClick}
+                onClick={() => handleImageClick('investment')}
               />
             </>
           ) : (
@@ -84,21 +130,24 @@ const HomeBredCurbs = ({ title, companyName, userType }) => {
               <img
                 src="/assets/images/dashboard/latest-insight.png"
                 alt="Latest Insight"
-                className="block dark:hidden w-full h-auto"
-                onClick={handleImageClick}
+                className="block dark:hidden w-full h-auto cursor-pointer"
+                onClick={() => handleImageClick('insight')}
               />
               <img
                 src="/assets/images/dashboard/latest-insightdark.png"
                 alt="Latest Insight Dark"
-                className="hidden dark:block w-full h-auto"
-                onClick={handleImageClick}
+                className="hidden dark:block w-full h-auto cursor-pointer"
+                onClick={() => handleImageClick('insight')}
               />
             </>
           )}
         </div>
       </div>
 
-      <ComingSoonModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      {isModalOpen && modalType === 'insight' && (
+        <GetStartupInsightsModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      )}
+
       <ToastContainer />
 
       <style jsx>{`
