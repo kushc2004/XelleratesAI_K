@@ -1,4 +1,4 @@
-import chromium from 'chrome-aws-lambda';
+import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core'; // Ensure you're using puppeteer-core
 import * as cheerio from 'cheerio';
 
