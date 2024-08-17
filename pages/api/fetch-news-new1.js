@@ -41,7 +41,7 @@ export default async function handler(req, res) {
             summaryList.push(summary);
             const decodedUrl = "https://google.com";
 
-            articles.push({ title, date, firstPara });
+            articles.push({ title, date, summaryList });
             return {decodedUrl,
                     title,
                     date,
