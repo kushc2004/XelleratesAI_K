@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     }
 
     const encodedString = encodeURI(searchString);
-    const url = `https://techcrunch.com/?s=zepto`;
+    const url = `https://techcrunch.com/?s=${encodedString}`;
 
     try {
         const AXIOS_OPTIONS = {
