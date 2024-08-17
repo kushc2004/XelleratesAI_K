@@ -36,12 +36,12 @@ export default async function handler(req, res) {
             .map(async (index, element) => {
             const title = $(element).find('h2.wp-block-post-title a').text().trim();
             const date = $(element).find('time').text().trim();
-            const summary = $(element).find('.wp-block-post-excerpt p').text().split('.')[0].replace('…','.').replace('. ','') + '.';
-            const summaryList = [];
-            summaryList.push(summary);
+            const summaryList = $(element).find('.wp-block-post-excerpt p').text().split('.')[0].replace('…','.').replace('. ','') + '.';
+            const summary = [];
+            summary.push(summaryList);
             const decodedUrl = "https://google.com";
 
-            articles.push({ title, date, summaryList });
+            articles.push({ title, date, summary });
             return {decodedUrl,
                     title,
                     date,
